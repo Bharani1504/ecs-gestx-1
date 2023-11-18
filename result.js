@@ -1,16 +1,14 @@
-// Import the necessary functions from Firebase modules
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.6.0/firebase-app.js';
 import { getFirestore, doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.6.0/firebase-firestore.js';
 
 const firebaseConfig = {
     apiKey: "AIzaSyDyOXjT2mYo3g72q1NLSREZg9HX7bzDsCI",
-  authDomain: "ecs-project-3a8d3.firebaseapp.com",
-  projectId: "ecs-project-3a8d3",
-  storageBucket: "ecs-project-3a8d3.appspot.com",
-  messagingSenderId: "587479702485",
-  appId: "1:587479702485:web:ccc1b75533437d281a7b5c",
-  measurementId: "G-NTJ6F80SY5"
-  
+    authDomain: "ecs-project-3a8d3.firebaseapp.com",
+    projectId: "ecs-project-3a8d3",
+    storageBucket: "ecs-project-3a8d3.appspot.com",
+    messagingSenderId: "587479702485",
+    appId: "1:587479702485:web:ccc1b75533437d281a7b5c",
+    measurementId: "G-NTJ6F80SY5"
 };
 
 // Initialize Firebase app
@@ -23,18 +21,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const table = document.getElementById('dataTable');
     const maxEmotionContainer = document.getElementById('maxEmotionContainer');
     const maxEmotionElement = document.getElementById('maxEmotion');
-    const documentId = 'complete_emotion_percentage';
+    const singleEmotionContainer = document.getElementById('tonecontainer');
+    const singleEmotionElement = document.getElementById('tone');
+    
+    const documentIdAllEmotions = 'complete_emotion_percentage';
+    const documentIdSingleEmotion = 'voice';
 
     try {
-        // Create a reference to the document
-        const docRef = doc(db, 'emotion', documentId);
+        // Retrieve data for all emotions
+        const docRefAllEmotions = doc(db, 'emotion', documentIdAllEmotions);
+        const docSnapshotAllEmotions = await getDoc(docRefAllEmotions);
 
-        // Get the document snapshot
-        const docSnapshot = await getDoc(docRef);
-
-        if (docSnapshot.exists()) {
-            // Document exists, extract data
-            const dataMap = docSnapshot.data().per;
+        if (docSnapshotAllEmotions.exists()) {
+            const dataMap = docSnapshotAllEmotions.data().per;
 
             // Variables to track maximum emotion
             let maxEmotion = '';
@@ -58,13 +57,34 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Display the emotion with the maximum value outside the table
             maxEmotionElement.textContent = maxEmotion;
         } else {
-            // Document doesn't exist
-            console.log('No such document!');
+            console.log('No such document for all emotions!');
             table.innerHTML = '<tr><td colspan="2">No data found</td></tr>';
         }
+
+        // Retrieve data for a single emotion
+        const docRefSingleEmotion = doc(db, 'emotion', documentIdSingleEmotion);
+        const docSnapshotSingleEmotion = await getDoc(docRefSingleEmotion);
+
+        if (docSnapshotSingleEmotion.exists()) {
+            // Document exists, extract data for the single emotion
+            const singleEmotionData = docSnapshotSingleEmotion.data();
+
+            // Check if the value is null
+            if (singleEmotionData.per !== null) {
+                // Display the single emotion data on the website
+                singleEmotionElement.textContent = singleEmotionData.per;
+            } else {
+                // Display a text message if the value is null
+                singleEmotionContainer.innerHTML = '<p>voice not recognised</p>';
+            }
+        } else {
+            console.log('No such document for single emotion!');
+            singleEmotionContainer.innerHTML = '<p>No data found for single emotion</p>';
+        }
+
     } catch (error) {
-        // Handle errors
-        console.error('Error getting document: ', error);
+        console.error('Error getting documents: ', error);
         table.innerHTML = '<tr><td colspan="2">Error retrieving data</td></tr>';
+        singleEmotionContainer.innerHTML = '<p>Error retrieving data for single emotion</p>';
     }
 });
